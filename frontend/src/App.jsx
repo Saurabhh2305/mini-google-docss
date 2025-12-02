@@ -1,32 +1,46 @@
-import React from 'react'
-import { useState } from 'react'
+import React from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 
-export default function App() {
-  const [count, setCount] = useState(0)
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import NoteEditor from "./pages/NoteEditor";
+import SharedNote from "./pages/SharedNote";
+
+const PrivateRoute = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+  return <Outlet />;
+};
+
+const App = () => {
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-lg w-full">
-        <div className="bg-white rounded-2xl shadow p-8 space-y-6">
-          <div className="inline-flex items-center gap-3">
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-black text-white font-bold">RT</span>
-            <h1 className="text-2xl font-bold tracking-tight">React + Tailwind Starter</h1>
-          </div>
-          <p className="text-slate-600">
-            Tailwind CSS is configured and working. Edit <code className="px-1 py-0.5 rounded bg-slate-100">src/App.jsx</code> and save to see changes.
-          </p>
-          <div className="flex items-center gap-4">
-            <button className="btn bg-black text-white" onClick={() => setCount((c) => c + 1)}>
-              Count: {count}
-            </button>
-            <a className="btn bg-slate-100" href="https://tailwindcss.com/docs" target="_blank" rel="noreferrer">
-              Tailwind Docs
-            </a>
-          </div>
-          <footer className="text-xs text-slate-500">
-            Built with <span className="font-semibold">Vite</span>, <span className="font-semibold">React</span>, and <span className="font-semibold">Tailwind CSS</span>.
-          </footer>
-        </div>
-      </div>
-    </main>
-  )
-}
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      <Route element={<PrivateRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/notes/:noteId" element={<NoteEditor />} />
+      </Route>
+
+      {/* Shared notes can be public or protected depending on backend */}
+      <Route path="/shared/:noteId" element={<SharedNote />} />
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+};
+
+export default App;
